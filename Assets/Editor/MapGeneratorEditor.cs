@@ -13,22 +13,12 @@ public class MapGeneratorEditor : Editor
         {
             if (mapGen.autoUpdate)
             {
-                UpdateMap(mapGen);
+                mapGen.UpdateMap();
             }
         }
         if (GUILayout.Button("Generate Map"))
         {
-            UpdateMap(mapGen);
+            mapGen.UpdateMap();
         }
-    }
-
-    void UpdateMap(MapGenerator mapGen)
-    {
-        float w = mapGen.mapWidth;
-        float h = mapGen.mapHeight;
-        float x = w * 0.5f - 0.5f;
-        float y = h * 0.5f - 0.5f;
-        Camera.main.orthographicSize = (((w > h * Camera.main.aspect) ? (float)w / (float)Camera.main.pixelWidth * Camera.main.pixelHeight : h) / 2 + 2) * 10f;
-        mapGen.DrawMapInEditor();
     }
 }

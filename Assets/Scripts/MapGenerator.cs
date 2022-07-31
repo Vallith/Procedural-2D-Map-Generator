@@ -80,6 +80,17 @@ public class MapGenerator : MonoBehaviour
     {
         GetFalloffMap();
     }
+
+    public void UpdateMap()
+    {
+        float w = mapWidth;
+        float h = mapHeight;
+        float x = w * 0.5f - 0.5f;
+        float y = h * 0.5f - 0.5f;
+        Camera.main.orthographicSize = (((w > h * Camera.main.aspect) ? (float)w / (float)Camera.main.pixelWidth * Camera.main.pixelHeight : h) / 2 + 2) * 10f;
+        DrawMapInEditor();
+    }
+
     public float[,] GetFalloffMap()
     {
         falloffMap = new float[mapWidth, mapHeight];
