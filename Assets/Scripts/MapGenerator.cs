@@ -46,9 +46,7 @@ public class MapGenerator : MonoBehaviour
     [Header("Map Settings")]
     public NoiseType noiseType;
     [Range(0, 1000)]
-    public int mapWidth;
-    [Range(0, 1000)]
-    public int mapHeight;
+    public int mapSize;
     public float noiseScale;
     [Range(1, 10)]
     public int octaves;
@@ -83,20 +81,18 @@ public class MapGenerator : MonoBehaviour
 
     public void UpdateMap()
     {
-        float w = mapWidth;
-        float h = mapHeight;
-        float x = w * 0.5f - 0.5f;
-        float y = h * 0.5f - 0.5f;
-        Camera.main.orthographicSize = (((w > h * Camera.main.aspect) ? (float)w / (float)Camera.main.pixelWidth * Camera.main.pixelHeight : h) / 2 + 2) * 10f;
+        float x = mapSize * 0.5f - 0.5f;
+        float y = mapSize * 0.5f - 0.5f;
+        Camera.main.orthographicSize = (((mapSize > mapSize * Camera.main.aspect) ? (float)mapSize / (float)Camera.main.pixelWidth * Camera.main.pixelHeight : mapSize) / 2 + 2) * 10f;
         DrawMapInEditor();
     }
 
     public float[,] GetFalloffMap()
     {
-        falloffMap = new float[mapWidth, mapHeight];
-        for (int x = 0; x < mapWidth; x++)
+        falloffMap = new float[mapSize, mapSize];
+        for (int x = 0; x < mapSize; x++)
         {
-            for (int y = 0; y < mapHeight; y++)
+            for (int y = 0; y < mapSize; y++)
             {
                 falloffMap[x, y] = 1f;
             }
@@ -106,14 +102,14 @@ public class MapGenerator : MonoBehaviour
         switch (falloffType)
         {
             case FalloffType.Square:
-                falloffMap = FalloffGenerator.GenerateSquareFalloffMap(mapWidth, mapHeight, falloffGradient, falloffSize);
+                falloffMap = FalloffGenerator.GenerateSquareFalloffMap(mapSize, mapSize, falloffGradient, falloffSize);
                 break;
             case FalloffType.HardRadial:
                 if(radialFalloffRadius > 0f)
-                    falloffMap = FalloffGenerator.GenerateRadialFalloffMap(mapWidth, mapHeight, 10f, 0f, radialFalloffRadius);
+                    falloffMap = FalloffGenerator.GenerateRadialFalloffMap(mapSize, mapSize, 10f, 0f, radialFalloffRadius);
                 break;
             case FalloffType.FeatheredRadial:
-                falloffMap = FalloffGenerator.GenerateFeatheredRadialFalloffMap(mapWidth, mapHeight, 10f, 0f, featheredRadialFalloffRadius1, featheredRadialFalloffRadius2);
+                falloffMap = FalloffGenerator.GenerateFeatheredRadialFalloffMap(mapSize, mapSize, 10f, 0f, featheredRadialFalloffRadius1, featheredRadialFalloffRadius2);
                 break;
             default:
                 break;
@@ -131,7 +127,7 @@ public class MapGenerator : MonoBehaviour
         }
         else if (drawMode == DrawMode.ColourMap)
         {
-            display.DrawTexture(TextureGenerator.TextureFromColourMap(mapData.colourMap, mapWidth, mapHeight));
+            display.DrawTexture(TextureGenerator.TextureFromColourMap(mapData.colourMap, mapSize, mapSize));
         }
         else if (drawMode == DrawMode.FalloffMap)
         {
@@ -139,14 +135,14 @@ public class MapGenerator : MonoBehaviour
         }
     }
     MapData GenerateMapData() {
-        float[,] noiseMap = NoiseGenerator.GenerateNoiseMap(mapWidth, mapHeight, seed, noiseScale, octaves, persistence, lacunarity, offset, noiseType, fractalType, cellularDistanceFunction, cellularReturnType, domainWarpType, isWarping, domainWarpAmplitude);
+        float[,] noiseMap = NoiseGenerator.GenerateNoiseMap(mapSize, mapSize, seed, noiseScale, octaves, persistence, lacunarity, offset, noiseType, fractalType, cellularDistanceFunction, cellularReturnType, domainWarpType, isWarping, domainWarpAmplitude);
 
-        Color[] colourMap = new Color[mapWidth * mapHeight];
+        Color[] colourMap = new Color[mapSize * mapSize];
 
 
-        for (int y = 0; y < mapHeight; y++)
+        for (int y = 0; y < mapSize; y++)
         {
-            for (int x = 0; x < mapWidth; x++)
+            for (int x = 0; x < mapSize; x++)
             {
 
                 if (useFalloff)
@@ -160,7 +156,7 @@ public class MapGenerator : MonoBehaviour
                 {
                     if (currentHeight <= regions[i].height)
                     {
-                        colourMap[y * mapWidth + x] = regions[i].colour;
+                        colourMap[y * mapSize + x] = regions[i].colour;
                         break;
                     }
                 }
@@ -171,9 +167,9 @@ public class MapGenerator : MonoBehaviour
 
     private void OnValidate()
     {
-        if(mapWidth < 1) { mapWidth = 1; }
+        if(mapSize < 1) { mapSize = 1; }
 
-        if(mapHeight < 1) {  mapHeight = 1; }
+        if(mapSize < 1) {  mapSize = 1; }
 
         if(noiseScale < 1) { noiseScale = 1; }
 

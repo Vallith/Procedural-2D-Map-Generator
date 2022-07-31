@@ -22,5 +22,5 @@ public class MapDisplay : MonoBehaviour
         }
         texture.SetPixels(blank);
         texture.Apply();
-    }
+    }   
 }
