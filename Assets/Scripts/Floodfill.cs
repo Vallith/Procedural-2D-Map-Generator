@@ -1,6 +1,8 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using System;
+using System.Threading.Tasks;
 
 public class Floodfill : MonoBehaviour
 {
@@ -35,54 +37,56 @@ public class Floodfill : MonoBehaviour
         landMasses.Clear();
         globalSet.Clear();
         HashSet<Vector2Int> samples = new HashSet<Vector2Int>();
-        HashSet<Vector2Int> set = new HashSet<Vector2Int>();
-        for (int i = 0; i < mapGen.floodfillPoints; i++)
+
+        for (int x = 0; x < mapGen.mapSize; x += mapGen.scanStride)
         {
-            for (int y = 0; y < mapGen.floodfillPoints; y++)
+            for (int y = 0; y < mapGen.mapSize; y += mapGen.scanStride)
             {
-                Vector2Int point = new Vector2Int(mapGen.mapSize / mapGen.floodfillPoints * i, mapGen.mapSize / mapGen.floodfillPoints * y);
-                samples.Add(point);
+                samples.Add(new Vector2Int(x, y));
             }
         }
 
-        int count = 0;
         foreach (var sample in samples)
         {
-            if (globalSet.Contains(sample) || mapGen.noiseMap[sample.x, sample.y] < mapGen.threshold)
+            CalculateSets(sample);
+        }
+    }
+
+    public void CalculateSets(Vector2Int sample)
+    {
+        if (globalSet.Contains(sample) || mapGen.noiseMap[sample.x, sample.y] < mapGen.threshold)
+        {
+            return;
+        }
+        HashSet<Vector2Int> set = new HashSet<Vector2Int>();
+        Queue<Vector2Int> queue = new Queue<Vector2Int>();
+        queue.Enqueue(sample);
+        while (queue.Count > 0)
+        {
+            Vector2Int n = queue.Dequeue();
+            if (set.Contains(n))
             {
                 continue;
             }
-            set = new HashSet<Vector2Int>();
-            Queue<Vector2Int> queue = new Queue<Vector2Int>();
-            queue.Enqueue(sample);
-            while (queue.Count > 0)
+            if (n.x < mapGen.mapSize && n.x >= 0 && n.y < mapGen.mapSize && n.y >= 0)
             {
-                Vector2Int n = queue.Dequeue();
-                if (set.Contains(n))
+                if (mapGen.noiseMap[n.x, n.y] > mapGen.threshold)
                 {
-                    continue;
-                }
-                if (n.x < mapGen.mapSize && n.x >= 0 && n.y < mapGen.mapSize && n.y >= 0)
-                {
-                    if (mapGen.noiseMap[n.x, n.y] > mapGen.threshold)
-                    {
-                        set.Add(n);
-                        globalSet.Add(n);
-                        queue.Enqueue(new Vector2Int(n.x, n.y - 1));
-                        queue.Enqueue(new Vector2Int(n.x, n.y + 1));
-                        queue.Enqueue(new Vector2Int(n.x - 1, n.y));
-                        queue.Enqueue(new Vector2Int(n.x + 1, n.y));
-                    }
+                    set.Add(n);
+                    globalSet.Add(n);
+                    queue.Enqueue(new Vector2Int(n.x, n.y - 1));
+                    queue.Enqueue(new Vector2Int(n.x, n.y + 1));
+                    queue.Enqueue(new Vector2Int(n.x - 1, n.y));
+                    queue.Enqueue(new Vector2Int(n.x + 1, n.y));
                 }
             }
-            count++;
-            landMasses.Add(count.ToString(), set);
         }
+        landMasses.Add(landMasses.Count.ToString(), set);
     }
 
     public float[,] CreateOutline(float[,] noiseMap)
     {
-        foreach (var item in globalSet)
+        Parallel.ForEach(globalSet, item =>
         {
             if (noiseMap[item.x, item.y] > mapGen.threshold)
             {
@@ -106,7 +110,7 @@ public class Floodfill : MonoBehaviour
                     noiseMap[item.x, item.y - 1] = 1f;
                 }
             }
-        }
+        });
         return noiseMap;
     }
 

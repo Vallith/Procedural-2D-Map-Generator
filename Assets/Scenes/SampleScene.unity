@@ -1152,7 +1152,7 @@ MonoBehaviour:
   domainWarpAmplitude: 0.26
   autoUpdate: 1
   drawOutlines: 1
-  floodfillPoints: 3
+  scanStride: 3
   threshold: 0.4
   noiseType: 2
   mapSize: 90

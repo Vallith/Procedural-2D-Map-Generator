@@ -45,7 +45,9 @@ public class MapGenerator : MonoBehaviour
 
     [Header("Flood Fill Settings")]
     public bool drawOutlines;
-    public int floodfillPoints;
+    // How many pixels to skip before checking for flood fill
+    [Range(3, 100)]
+    public int scanStride;
     public float threshold;
 
     [Header("Map Settings")]
