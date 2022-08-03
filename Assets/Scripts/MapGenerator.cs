@@ -43,6 +43,11 @@ public class MapGenerator : MonoBehaviour
     public float domainWarpAmplitude;
     public bool autoUpdate;
 
+    [Header("Flood Fill Settings")]
+    public bool drawOutlines;
+    public int floodfillPoints;
+    public float threshold;
+
     [Header("Map Settings")]
     public NoiseType noiseType;
     [Range(0, 1000)]
@@ -73,6 +78,8 @@ public class MapGenerator : MonoBehaviour
     public float featheredRadialFalloffRadius2;
 
     public TerrainType[] regions;
+
+    public float[,] noiseMap;
 
     private void Awake()
     {
@@ -120,6 +127,11 @@ public class MapGenerator : MonoBehaviour
     public void DrawMap()
     {
         MapData mapData = GenerateMapData();
+        if(drawOutlines)
+        {
+            GetComponent<Floodfill>().Flood();
+            GetComponent<Floodfill>().CreateOutline(mapData.heightMap);
+        }
         MapDisplay display = FindObjectOfType<MapDisplay>();
         if (drawMode == DrawMode.NoiseMap)
         {
@@ -135,7 +147,7 @@ public class MapGenerator : MonoBehaviour
         }
     }
     MapData GenerateMapData() {
-        float[,] noiseMap = NoiseGenerator.GenerateNoiseMap(mapSize, mapSize, seed, noiseScale, octaves, persistence, lacunarity, offset, noiseType, fractalType, cellularDistanceFunction, cellularReturnType, domainWarpType, isWarping, domainWarpAmplitude);
+        noiseMap = NoiseGenerator.GenerateNoiseMap(mapSize, mapSize, seed, noiseScale, octaves, persistence, lacunarity, offset, noiseType, fractalType, cellularDistanceFunction, cellularReturnType, domainWarpType, isWarping, domainWarpAmplitude);
 
         Color[] colourMap = new Color[mapSize * mapSize];
 
@@ -193,19 +205,6 @@ public class MapGenerator : MonoBehaviour
         GetFalloffMap();
 
     }
-
-    struct MapThreadInfo<T>
-    {
-        public readonly Action<T> callback;
-        public readonly T parameter;
-
-        public MapThreadInfo(Action<T> callback, T parameter)
-        {
-            this.callback = callback;
-            this.parameter = parameter; 
-        }
-    }
-
 }
 
 [System.Serializable]
@@ -218,8 +217,8 @@ public struct TerrainType {
 
 public struct MapData
 {
-    public readonly float[,] heightMap;
-    public readonly Color[] colourMap;
+    public float[,] heightMap;
+    public Color[] colourMap;
 
     public MapData(float[,] heightMap, Color[] colourMap)
     {
