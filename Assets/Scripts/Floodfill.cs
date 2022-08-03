@@ -6,14 +6,9 @@ using System.Threading.Tasks;
 
 public class Floodfill : MonoBehaviour
 {
-    MapGenerator mapGen;
+    public MapGenerator mapGen;
     HashSet<Vector2Int> globalSet = new HashSet<Vector2Int>();
     Dictionary<string, HashSet<Vector2Int>> landMasses = new Dictionary<string, HashSet<Vector2Int>>();
-    // Start is called before the first frame update
-    void Start()
-    {
-        mapGen = FindObjectOfType<MapGenerator>();
-    }
 
     // Update is called once per frame
     void Update()
@@ -84,34 +79,48 @@ public class Floodfill : MonoBehaviour
         landMasses.Add(landMasses.Count.ToString(), set);
     }
 
-    public float[,] CreateOutline(float[,] noiseMap)
+    public void CreateOutline(float[,] noiseMap, Color[] colourMap = null)
     {
         Parallel.ForEach(globalSet, item =>
         {
-            if (noiseMap[item.x, item.y] > mapGen.threshold)
+            if (noiseMap[item.x, item.y] >= mapGen.threshold)
             {
-                if (item.x + 1 < mapGen.mapSize && noiseMap[item.x + 1, item.y] < mapGen.threshold)
+                if (item.x + 1 < mapGen.mapSize && noiseMap[item.x + 1, item.y] <= mapGen.threshold)
                 {
                     noiseMap[item.x + 1, item.y] = 1f;
+                    if (colourMap != null)
+                    {
+                        colourMap[item.y * mapGen.mapSize + (item.x + 1)] = mapGen.outlineColour;
+                    }
                 }
 
-                if (item.x - 1 >= 0 && noiseMap[item.x - 1, item.y] < mapGen.threshold)
+                if (item.x - 1 >= 0 && noiseMap[item.x - 1, item.y] <= mapGen.threshold)
                 {
                     noiseMap[item.x - 1, item.y] = 1f;
+                    if (colourMap != null)
+                    {
+                        colourMap[item.y * mapGen.mapSize + (item.x - 1)] = mapGen.outlineColour;
+                    }
                 }
 
-                if (item.y + 1 < mapGen.mapSize && noiseMap[item.x, item.y + 1] < mapGen.threshold)
+                if (item.y + 1 < mapGen.mapSize && noiseMap[item.x, item.y + 1] <= mapGen.threshold)
                 {
                     noiseMap[item.x, item.y + 1] = 1f;
+                    if (colourMap != null)
+                    {
+                        colourMap[(item.y + 1) * mapGen.mapSize + item.x] = mapGen.outlineColour;
+                    }
                 }
 
-                if (item.y - 1 >= 0 && noiseMap[item.x, item.y - 1] < mapGen.threshold)
+                if (item.y - 1 >= 0 && noiseMap[item.x, item.y - 1] <= mapGen.threshold)
                 {
                     noiseMap[item.x, item.y - 1] = 1f;
+                    if (colourMap != null)
+                    {
+                        colourMap[(item.y - 1) * mapGen.mapSize + item.x] = mapGen.outlineColour;
+                    }
                 }
             }
         });
-        return noiseMap;
     }
-
 }

@@ -1142,37 +1142,44 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6dc27e32ba35f4c488f76984325f2f6f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  drawMode: 0
+  drawMode: 1
   falloffType: 2
   fractalType: 1
   cellularReturnType: 4
   cellularDistanceFunction: 1
   domainWarpType: 0
   isWarping: 1
-  domainWarpAmplitude: 0.26
+  domainWarpAmplitude: 0.13
   autoUpdate: 1
-  drawOutlines: 1
+  drawOutlines: 0
   scanStride: 3
   threshold: 0.4
+  outlineColour: {r: 0, g: 0, b: 0, a: 1}
   noiseType: 2
-  mapSize: 90
+  mapSize: 309
   noiseScale: 331.3
   octaves: 6
   persistence: 0.47
   lacunarity: 3.5
-  seed: 1396
+  seed: 1412
   offset: {x: 1, y: 1}
   useFalloff: 1
   falloffGradient: 1.97
   falloffSize: 5.27
   radialFalloffRadius: 216.3
-  featheredRadialFalloffRadius1: 73.16
-  featheredRadialFalloffRadius2: 165.5
+  featheredRadialFalloffRadius1: 121.91
+  featheredRadialFalloffRadius2: 184.6
   regions:
-  - name: Water Deep
+  - name: Deep Ocean
+    height: 0.1
+    colour: {r: 0.123398006, g: 0.2863131, b: 0.5566038, a: 1}
+  - name: Ocean
+    height: 0.2
+    colour: {r: 0.14524741, g: 0.31802142, b: 0.6037736, a: 1}
+  - name: Ocean Shallow
     height: 0.3
     colour: {r: 0.19023673, g: 0.35781616, b: 0.7075472, a: 1}
-  - name: Water Shallow
+  - name: Shallows
     height: 0.4
     colour: {r: 0.21306513, g: 0.41285402, b: 0.7924528, a: 1}
   - name: Sand
@@ -1190,6 +1197,9 @@ MonoBehaviour:
   - name: Rock
     height: 0.7
     colour: {r: 0.34509805, g: 0.2509804, b: 0.23137257, a: 1}
+  - name: Snow
+    height: 0.8
+    colour: {r: 0.31132078, g: 0.22780018, b: 0.21586867, a: 1}
   - name: Rock 2
     height: 0.9
     colour: {r: 0.2627451, g: 0.20784315, b: 0.20000002, a: 1}
@@ -1222,6 +1232,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c4b03dcbc53c1b144ba96a6fdab1cb52, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  mapGen: {fileID: 306182298}
 --- !u!1 &365522998
 GameObject:
   m_ObjectHideFlags: 0
@@ -1560,7 +1571,7 @@ Camera:
   far clip plane: 1000
   field of view: 167.5
   orthographic: 1
-  orthographic size: 470
+  orthographic size: 1565
   m_Depth: -1
   m_CullingMask:
     serializedVersion: 2
@@ -3236,7 +3247,7 @@ Transform:
   m_GameObject: {fileID: 979809396}
   m_LocalRotation: {x: -0.7071068, y: 0, z: 0, w: 0.7071068}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 90, y: 1, z: 90}
+  m_LocalScale: {x: 309, y: 1, z: 309}
   m_Children:
   - {fileID: 1338358464}
   m_Father: {fileID: 0}

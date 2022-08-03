@@ -49,6 +49,7 @@ public class MapGenerator : MonoBehaviour
     [Range(3, 100)]
     public int scanStride;
     public float threshold;
+    public Color outlineColour;
 
     [Header("Map Settings")]
     public NoiseType noiseType;
@@ -129,12 +130,13 @@ public class MapGenerator : MonoBehaviour
     public void DrawMap()
     {
         MapData mapData = GenerateMapData();
-        if(drawOutlines)
+
+        MapDisplay display = FindObjectOfType<MapDisplay>();
+        if (drawOutlines)
         {
             GetComponent<Floodfill>().Flood();
-            GetComponent<Floodfill>().CreateOutline(mapData.heightMap);
+            GetComponent<Floodfill>().CreateOutline(mapData.heightMap, mapData.colourMap);
         }
-        MapDisplay display = FindObjectOfType<MapDisplay>();
         if (drawMode == DrawMode.NoiseMap)
         {
             display.DrawTexture(TextureGenerator.TextureFromHeightMap(mapData.heightMap));
@@ -151,14 +153,17 @@ public class MapGenerator : MonoBehaviour
     MapData GenerateMapData() {
         noiseMap = NoiseGenerator.GenerateNoiseMap(mapSize, mapSize, seed, noiseScale, octaves, persistence, lacunarity, offset, noiseType, fractalType, cellularDistanceFunction, cellularReturnType, domainWarpType, isWarping, domainWarpAmplitude);
 
-        Color[] colourMap = new Color[mapSize * mapSize];
+        return new MapData(noiseMap, GetColourMap());
+    }
 
+    Color[] GetColourMap()
+    {
+        Color[] colourMap = new Color[mapSize * mapSize];
 
         for (int y = 0; y < mapSize; y++)
         {
             for (int x = 0; x < mapSize; x++)
             {
-
                 if (useFalloff)
                 {
                     noiseMap[x, y] = Mathf.Clamp01(noiseMap[x, y] - falloffMap[x, y]);
@@ -176,7 +181,7 @@ public class MapGenerator : MonoBehaviour
                 }
             }
         }
-        return new MapData(noiseMap, colourMap);
+        return colourMap;
     }
 
     private void OnValidate()
