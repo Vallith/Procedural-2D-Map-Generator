@@ -2,10 +2,12 @@ using System.Collections;
 using System.Collections.Generic;
 using System;
 using UnityEngine;
+using TMPro;
 
 public class OptionsManager : MonoBehaviour
 {
     MapGenerator mapGenerator;
+    public TextMeshProUGUI tooltipBox;
 
     private void Awake()
     {

@@ -1,7 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using System;
+using System.Diagnostics;
 using System.Threading.Tasks;
 
 public class Floodfill : MonoBehaviour
@@ -9,12 +9,6 @@ public class Floodfill : MonoBehaviour
     public MapGenerator mapGen;
     HashSet<Vector2Int> globalSet = new HashSet<Vector2Int>();
     Dictionary<string, HashSet<Vector2Int>> landMasses = new Dictionary<string, HashSet<Vector2Int>>();
-
-    // Update is called once per frame
-    void Update()
-    {
-        
-    }
 
     public Vector2Int FindAverageOfPoints(HashSet<Vector2Int> set)
     {
@@ -41,15 +35,33 @@ public class Floodfill : MonoBehaviour
             }
         }
 
+        float[,] noiseMap = mapGen.noiseMap;
+        int mapSize = mapGen.mapSize;
+        float threshold = mapGen.threshold;
+
         foreach (var sample in samples)
         {
-            CalculateSets(sample);
+            CalculateSets(sample, noiseMap, mapSize, threshold);
         }
     }
 
-    public void CalculateSets(Vector2Int sample)
+    public bool Inside(Vector2Int point)
     {
-        if (globalSet.Contains(sample) || mapGen.noiseMap[sample.x, sample.y] < mapGen.threshold)
+        return Inside(point.x, point.y);
+    }
+
+    public bool Inside(int x, int y)
+    {
+        if (x < mapGen.mapSize && x >= 0 && y < mapGen.mapSize && y >= 0)
+        {
+            return mapGen.noiseMap[x, y] > mapGen.threshold;
+        }
+        return false;
+    }
+
+    public void CalculateSets(Vector2Int sample, float[,] noiseMap, int mapSize, float threshold)
+    {
+        if (globalSet.Contains(sample) || noiseMap[sample.x, sample.y] < threshold)
         {
             return;
         }
@@ -63,17 +75,15 @@ public class Floodfill : MonoBehaviour
             {
                 continue;
             }
-            if (n.x < mapGen.mapSize && n.x >= 0 && n.y < mapGen.mapSize && n.y >= 0)
+
+            if(Inside(n))
             {
-                if (mapGen.noiseMap[n.x, n.y] > mapGen.threshold)
-                {
-                    set.Add(n);
-                    globalSet.Add(n);
-                    queue.Enqueue(new Vector2Int(n.x, n.y - 1));
-                    queue.Enqueue(new Vector2Int(n.x, n.y + 1));
-                    queue.Enqueue(new Vector2Int(n.x - 1, n.y));
-                    queue.Enqueue(new Vector2Int(n.x + 1, n.y));
-                }
+                set.Add(n);
+                globalSet.Add(n);
+                queue.Enqueue(new Vector2Int(n.x, n.y - 1));
+                queue.Enqueue(new Vector2Int(n.x, n.y + 1));
+                queue.Enqueue(new Vector2Int(n.x - 1, n.y));
+                queue.Enqueue(new Vector2Int(n.x + 1, n.y));
             }
         }
         landMasses.Add(landMasses.Count.ToString(), set);
@@ -83,44 +93,49 @@ public class Floodfill : MonoBehaviour
     {
         Parallel.ForEach(globalSet, item =>
         {
-            if (noiseMap[item.x, item.y] >= mapGen.threshold)
+            CheckEdge(item, noiseMap, colourMap);
+        });
+    }
+
+    void CheckEdge(Vector2Int item, float[,] noiseMap, Color[] colourMap)
+    {
+        if (noiseMap[item.x, item.y] >= mapGen.threshold)
+        {
+            if (item.x + 1 < mapGen.mapSize && noiseMap[item.x + 1, item.y] <= mapGen.threshold)
             {
-                if (item.x + 1 < mapGen.mapSize && noiseMap[item.x + 1, item.y] <= mapGen.threshold)
+                noiseMap[item.x + 1, item.y] = 1f;
+                if (colourMap != null)
                 {
-                    noiseMap[item.x + 1, item.y] = 1f;
-                    if (colourMap != null)
-                    {
-                        colourMap[item.y * mapGen.mapSize + (item.x + 1)] = mapGen.outlineColour;
-                    }
-                }
-
-                if (item.x - 1 >= 0 && noiseMap[item.x - 1, item.y] <= mapGen.threshold)
-                {
-                    noiseMap[item.x - 1, item.y] = 1f;
-                    if (colourMap != null)
-                    {
-                        colourMap[item.y * mapGen.mapSize + (item.x - 1)] = mapGen.outlineColour;
-                    }
-                }
-
-                if (item.y + 1 < mapGen.mapSize && noiseMap[item.x, item.y + 1] <= mapGen.threshold)
-                {
-                    noiseMap[item.x, item.y + 1] = 1f;
-                    if (colourMap != null)
-                    {
-                        colourMap[(item.y + 1) * mapGen.mapSize + item.x] = mapGen.outlineColour;
-                    }
-                }
-
-                if (item.y - 1 >= 0 && noiseMap[item.x, item.y - 1] <= mapGen.threshold)
-                {
-                    noiseMap[item.x, item.y - 1] = 1f;
-                    if (colourMap != null)
-                    {
-                        colourMap[(item.y - 1) * mapGen.mapSize + item.x] = mapGen.outlineColour;
-                    }
+                    colourMap[item.y * mapGen.mapSize + (item.x + 1)] = mapGen.outlineColour;
                 }
             }
-        });
+
+            if (item.x - 1 >= 0 && noiseMap[item.x - 1, item.y] <= mapGen.threshold)
+            {
+                noiseMap[item.x - 1, item.y] = 1f;
+                if (colourMap != null)
+                {
+                    colourMap[item.y * mapGen.mapSize + (item.x - 1)] = mapGen.outlineColour;
+                }
+            }
+
+            if (item.y + 1 < mapGen.mapSize && noiseMap[item.x, item.y + 1] <= mapGen.threshold)
+            {
+                noiseMap[item.x, item.y + 1] = 1f;
+                if (colourMap != null)
+                {
+                    colourMap[(item.y + 1) * mapGen.mapSize + item.x] = mapGen.outlineColour;
+                }
+            }
+
+            if (item.y - 1 >= 0 && noiseMap[item.x, item.y - 1] <= mapGen.threshold)
+            {
+                noiseMap[item.x, item.y - 1] = 1f;
+                if (colourMap != null)
+                {
+                    colourMap[(item.y - 1) * mapGen.mapSize + item.x] = mapGen.outlineColour;
+                }
+            }
+        }
     }
 }

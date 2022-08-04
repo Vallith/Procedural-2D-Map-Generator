@@ -2,24 +2,16 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using System.Threading.Tasks;
-using Unity.Mathematics;
+using System.Diagnostics;
 public static class NoiseGenerator
 {
 
-    public static float[,] GenerateNoiseMap(int mapWidth, int mapHeight, int seed, float scale, int octaves, float persistence, float lacunarity, Vector2 offset, MapGenerator.NoiseType noiseType, 
+    public static float[,] GenerateNoiseMap(int mapSize, int seed, float scale, int octaves, float persistence, float lacunarity, MapGenerator.NoiseType noiseType, 
         FastNoiseLite.FractalType fractalType, FastNoiseLite.CellularDistanceFunction cellularDistanceFunction, FastNoiseLite.CellularReturnType cellularReturnType,
         FastNoiseLite.DomainWarpType domainWarpType, bool isWarping, float domainWarpAmplitude)
     {
         FastNoiseLite fastNoise = new FastNoiseLite();
-        float[,] noiseMap = new float[mapWidth, mapHeight];
-
-        System.Random random = new System.Random(seed);
-        Vector2[] octaveOffsets = new Vector2[octaves];
-        for (int i = 0; i < octaves; i++) {
-            float offsetX = random.Next(-100000, 100000) + offset.x;
-            float offsetY = random.Next(-100000, 100000) + offset.y;
-            octaveOffsets[i] = new Vector2(offsetX, offsetY);
-        }
+        float[,] noiseMap = new float[mapSize, mapSize];
 
         if (scale <= 0) {
             scale = 0.0001f;
@@ -27,11 +19,6 @@ public static class NoiseGenerator
 
         float maxNoiseHeight = float.MinValue;
         float minNoiseHeight = float.MaxValue;
-
-        float halfWidth = mapWidth / 2f;
-        float halfHeight = mapHeight / 2f;
-
-
 
         fastNoise.SetFractalType(fractalType);
         fastNoise.SetCellularDistanceFunction(cellularDistanceFunction);
@@ -43,10 +30,10 @@ public static class NoiseGenerator
         fastNoise.SetSeed(seed);
         fastNoise.SetDomainWarpType(domainWarpType);
 
-        Parallel.For(0, mapHeight,
+        Parallel.For(0, mapSize,
             y =>
             {
-                Parallel.For(0, mapWidth,
+                Parallel.For(0, mapSize,
                     x =>
                     {
                         float amplitude = 1;
@@ -57,12 +44,15 @@ public static class NoiseGenerator
 
 
                         float noiseValue;
-                        float xMod = (x - halfWidth) / scale;
-                        float yMod = (y - halfWidth) / scale;
+                        float xMod = (x - mapSize) / scale;
+                        float yMod = (y - mapSize) / scale;
+
+                        // 1000 * 1000 map seems to cost about 10 - 20ms
                         if(isWarping)
                         {
                             fastNoise.DomainWarp(ref xMod, ref yMod);
                         }
+
                         switch (noiseType)
                         {
                             case MapGenerator.NoiseType.PerlinFast:
@@ -105,11 +95,15 @@ public static class NoiseGenerator
                     });
             });
 
-        for (int y = 0; y < mapHeight; y++) {
-            for (int x = 0; x < mapWidth; x++) {
+        // 1000 * 1000 map seems to cost about 15 ms
+        Parallel.For(0, mapSize, y =>
+        {
+            Parallel.For(0, mapSize, x =>
+            {
                 noiseMap[x, y] = Mathf.InverseLerp(minNoiseHeight, maxNoiseHeight, noiseMap[x, y]);
-            }
-        }
-                return noiseMap;
+            });
+        });
+
+        return noiseMap;
     }
 }

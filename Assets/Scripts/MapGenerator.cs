@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 
+[ExecuteInEditMode()]
 public class MapGenerator : MonoBehaviour
 {
 
@@ -30,6 +31,8 @@ public class MapGenerator : MonoBehaviour
         Cellular,
         Value
     };
+
+    MapDisplay display;
 
     FastNoiseLite noise = new FastNoiseLite();
     public DrawMode drawMode;
@@ -63,7 +66,6 @@ public class MapGenerator : MonoBehaviour
     [Range(0, 23)]
     public float lacunarity;
     public int seed;
-    public Vector2 offset;
 
 
     float[,] falloffMap;
@@ -86,6 +88,7 @@ public class MapGenerator : MonoBehaviour
 
     private void Awake()
     {
+        display = FindObjectOfType<MapDisplay>();
         GetFalloffMap();
     }
 
@@ -129,12 +132,22 @@ public class MapGenerator : MonoBehaviour
 
     public void DrawMap()
     {
-        MapData mapData = GenerateMapData();
+        Stopwatch sw = new Stopwatch();
 
-        MapDisplay display = FindObjectOfType<MapDisplay>();
+        sw.Start();
+        MapData mapData = GenerateMapData();
+        sw.Stop();
+
+        UnityEngine.Debug.Log("Generate Map Data: " + sw.ElapsedMilliseconds);
+
         if (drawOutlines)
         {
+            sw.Restart();
             GetComponent<Floodfill>().Flood();
+            sw.Stop();
+            UnityEngine.Debug.Log("Flood: " + sw.ElapsedMilliseconds);
+
+            // 1000 * 1000 map costs about 5 - 10ms
             GetComponent<Floodfill>().CreateOutline(mapData.heightMap, mapData.colourMap);
         }
         if (drawMode == DrawMode.NoiseMap)
@@ -151,7 +164,7 @@ public class MapGenerator : MonoBehaviour
         }
     }
     MapData GenerateMapData() {
-        noiseMap = NoiseGenerator.GenerateNoiseMap(mapSize, mapSize, seed, noiseScale, octaves, persistence, lacunarity, offset, noiseType, fractalType, cellularDistanceFunction, cellularReturnType, domainWarpType, isWarping, domainWarpAmplitude);
+        noiseMap = NoiseGenerator.GenerateNoiseMap(mapSize, seed, noiseScale, octaves, persistence, lacunarity, noiseType, fractalType, cellularDistanceFunction, cellularReturnType, domainWarpType, isWarping, domainWarpAmplitude);
 
         return new MapData(noiseMap, GetColourMap());
     }
@@ -160,9 +173,9 @@ public class MapGenerator : MonoBehaviour
     {
         Color[] colourMap = new Color[mapSize * mapSize];
 
-        for (int y = 0; y < mapSize; y++)
+        Parallel.For(0, mapSize, y =>
         {
-            for (int x = 0; x < mapSize; x++)
+            Parallel.For(0, mapSize, x =>
             {
                 if (useFalloff)
                 {
@@ -179,8 +192,9 @@ public class MapGenerator : MonoBehaviour
                         break;
                     }
                 }
-            }
-        }
+            });
+        });
+
         return colourMap;
     }
 
