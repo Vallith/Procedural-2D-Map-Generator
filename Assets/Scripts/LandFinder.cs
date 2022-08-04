@@ -1,48 +1,19 @@
 using System.Collections;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using UnityEngine;
 using System.Diagnostics;
 using System.Threading.Tasks;
 
-public class Floodfill : MonoBehaviour
+public class LandFinder : MonoBehaviour
 {
     public MapGenerator mapGen;
-    HashSet<Vector2Int> globalSet = new HashSet<Vector2Int>();
-    Dictionary<string, HashSet<Vector2Int>> landMasses = new Dictionary<string, HashSet<Vector2Int>>();
+    ConcurrentBag<Vector2Int> globalSet = new ConcurrentBag<Vector2Int>();
 
-    public Vector2Int FindAverageOfPoints(HashSet<Vector2Int> set)
+    public void GetLand()
     {
-        int count = set.Count;
-        Vector2Int total = new Vector2Int();
-        foreach (var item in set)
-        {
-            total += item;
-        }
-        return total /= count;
-    }
-
-    public void Flood()
-    {
-        landMasses.Clear();
-        globalSet.Clear();
-        HashSet<Vector2Int> samples = new HashSet<Vector2Int>();
-
-        for (int x = 0; x < mapGen.mapSize; x += mapGen.scanStride)
-        {
-            for (int y = 0; y < mapGen.mapSize; y += mapGen.scanStride)
-            {
-                samples.Add(new Vector2Int(x, y));
-            }
-        }
-
-        float[,] noiseMap = mapGen.noiseMap;
-        int mapSize = mapGen.mapSize;
-        float threshold = mapGen.threshold;
-
-        foreach (var sample in samples)
-        {
-            CalculateSets(sample, noiseMap, mapSize, threshold);
-        }
+        globalSet = new ConcurrentBag<Vector2Int>();
+        BruteForce();
     }
 
     public bool Inside(Vector2Int point)
@@ -59,34 +30,18 @@ public class Floodfill : MonoBehaviour
         return false;
     }
 
-    public void CalculateSets(Vector2Int sample, float[,] noiseMap, int mapSize, float threshold)
+    public void BruteForce()
     {
-        if (globalSet.Contains(sample) || noiseMap[sample.x, sample.y] < threshold)
+        Parallel.For(0, mapGen.mapSize, x =>
         {
-            return;
-        }
-        HashSet<Vector2Int> set = new HashSet<Vector2Int>();
-        Queue<Vector2Int> queue = new Queue<Vector2Int>();
-        queue.Enqueue(sample);
-        while (queue.Count > 0)
-        {
-            Vector2Int n = queue.Dequeue();
-            if (set.Contains(n))
+            Parallel.For(0, mapGen.mapSize, y =>
             {
-                continue;
-            }
-
-            if(Inside(n))
-            {
-                set.Add(n);
-                globalSet.Add(n);
-                queue.Enqueue(new Vector2Int(n.x, n.y - 1));
-                queue.Enqueue(new Vector2Int(n.x, n.y + 1));
-                queue.Enqueue(new Vector2Int(n.x - 1, n.y));
-                queue.Enqueue(new Vector2Int(n.x + 1, n.y));
-            }
-        }
-        landMasses.Add(landMasses.Count.ToString(), set);
+                if (Inside(x, y))
+                {
+                    globalSet.Add(new Vector2Int(x, y));
+                }
+            });
+        });
     }
 
     public void CreateOutline(float[,] noiseMap, Color[] colourMap = null)

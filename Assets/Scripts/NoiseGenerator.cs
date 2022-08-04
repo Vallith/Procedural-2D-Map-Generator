@@ -13,6 +13,8 @@ public static class NoiseGenerator
         FastNoiseLite fastNoise = new FastNoiseLite();
         float[,] noiseMap = new float[mapSize, mapSize];
 
+        float halfSize = mapSize / 2f;
+
         if (scale <= 0) {
             scale = 0.0001f;
         }
@@ -30,6 +32,7 @@ public static class NoiseGenerator
         fastNoise.SetSeed(seed);
         fastNoise.SetDomainWarpType(domainWarpType);
         fastNoise.SetFrequency(1);
+        fastNoise.SetNoiseType(noiseType);
 
         Parallel.For(0, mapSize,
             y =>
@@ -38,8 +41,8 @@ public static class NoiseGenerator
                     x =>
                     {
                         float noiseValue;
-                        float xMod = (x - mapSize) / scale;
-                        float yMod = (y - mapSize) / scale;
+                        float xMod = (x - halfSize) / scale;
+                        float yMod = (y - halfSize) / scale;
 
                         // 1000 * 1000 map seems to cost about 10 - 20ms
                         if(isWarping)
@@ -47,10 +50,10 @@ public static class NoiseGenerator
                             fastNoise.DomainWarp(ref xMod, ref yMod);
                         }
 
-                        fastNoise.SetNoiseType(noiseType);
                         noiseValue = fastNoise.GetNoise(xMod, yMod) * 2 - 1;
                       
                         noiseValue = (noiseValue + 1) / 2;
+
 
                         if (noiseValue > maxNoiseHeight)
                         {

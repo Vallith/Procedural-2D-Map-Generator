@@ -25,8 +25,6 @@ public class MapGenerator : MonoBehaviour
     };
 
     MapDisplay display;
-
-    FastNoiseLite noise = new FastNoiseLite();
     public DrawMode drawMode;
     public FalloffType falloffType;
     public FastNoiseLite.FractalType fractalType;
@@ -38,11 +36,8 @@ public class MapGenerator : MonoBehaviour
     public float domainWarpAmplitude;
     public bool autoUpdate;
 
-    [Header("Flood Fill Settings")]
+    [Header("Land Finder Settings")]
     public bool drawOutlines;
-    // How many pixels to skip before checking for flood fill
-    [Range(3, 100)]
-    public int scanStride;
     public float threshold;
     public Color outlineColour;
 
@@ -124,23 +119,13 @@ public class MapGenerator : MonoBehaviour
 
     public void DrawMap()
     {
-        Stopwatch sw = new Stopwatch();
-
-        sw.Start();
         MapData mapData = GenerateMapData();
-        sw.Stop();
-
-        UnityEngine.Debug.Log("Generate Map Data: " + sw.ElapsedMilliseconds);
 
         if (drawOutlines)
         {
-            sw.Restart();
-            GetComponent<Floodfill>().Flood();
-            sw.Stop();
-            UnityEngine.Debug.Log("Flood: " + sw.ElapsedMilliseconds);
-
+            GetComponent<LandFinder>().GetLand();
             // 1000 * 1000 map costs about 5 - 10ms
-            GetComponent<Floodfill>().CreateOutline(mapData.heightMap, mapData.colourMap);
+            GetComponent<LandFinder>().CreateOutline(mapData.heightMap, mapData.colourMap);
         }
         if (drawMode == DrawMode.NoiseMap)
         {
