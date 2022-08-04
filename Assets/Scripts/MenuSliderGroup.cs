@@ -10,11 +10,9 @@ public class MenuSliderGroup : MonoBehaviour
     public float defaultValue;
     public Slider slider;
     public TMP_InputField inputField;
-    public GameObject hoverArea;
     public MapOptionType optionType;
     public bool roundValue;
     OptionsManager optionsManager;
-    public string tooltipText;
 
     // Start is called before the first frame update
     void Start()

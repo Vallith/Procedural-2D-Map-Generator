@@ -5,16 +5,15 @@ using UnityEngine.EventSystems;
 public class TooltipHover : MonoBehaviour, IPointerEnterHandler
 {
     OptionsManager optionsManager;
-    MenuSliderGroup sliderGroup;
+    public string tooltipText;
 
     private void Awake()
     {
         optionsManager = FindObjectOfType<OptionsManager>();
-        sliderGroup = GetComponentInParent<MenuSliderGroup>();
     }
 
     public void OnPointerEnter(PointerEventData eventData)
     {
-        optionsManager.tooltipBox.text = sliderGroup.tooltipText;
+        optionsManager.tooltipBox.text = tooltipText;
     }
 }
