@@ -5,6 +5,7 @@ using UnityEngine;
 public class MapDisplay : MonoBehaviour
 {
     public Renderer textureRenderer;
+    public Color clearColour;
 
     public void DrawTexture(Texture2D texture)
     {
@@ -18,7 +19,7 @@ public class MapDisplay : MonoBehaviour
         Color[] blank = new Color[texture.width * texture.height];
         for (int i = 0; i < blank.Length; i++)
         {
-            blank[i] = Color.white;
+            blank[i] = clearColour;
         }
         texture.SetPixels(blank);
         texture.Apply();
