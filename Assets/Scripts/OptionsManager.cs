@@ -36,9 +36,22 @@ public class OptionsManager : MonoBehaviour
             case MapOptionType.MapSize:
                 mapGenerator.mapSize = (int)Convert.ChangeType(value, typeof(int));
                 break;
+            case MapOptionType.NoiseType:
+                mapGenerator.noiseType = (FastNoiseLite.NoiseType)Enum.Parse(typeof(FastNoiseLite.NoiseType), (string)Convert.ChangeType(value, typeof(string)));
+                break;
+            case MapOptionType.FractalType:
+                mapGenerator.fractalType = (FastNoiseLite.FractalType)Enum.Parse(typeof(FastNoiseLite.FractalType), (string)Convert.ChangeType(value, typeof(string)));
+                break;
+            case MapOptionType.CellularReturnType:
+                mapGenerator.cellularReturnType = (FastNoiseLite.CellularReturnType)Enum.Parse(typeof(FastNoiseLite.CellularReturnType), (string)Convert.ChangeType(value, typeof(string)));
+                break;
+            case MapOptionType.CellularDistanceType:
+                mapGenerator.cellularDistanceFunction = (FastNoiseLite.CellularDistanceFunction)Enum.Parse(typeof(FastNoiseLite.CellularDistanceFunction), (string)Convert.ChangeType(value, typeof(string)));
+                break;
             default:
                 break;
         }
+
         mapGenerator.UpdateMap();
     }
 

@@ -6,7 +6,7 @@ using System.Diagnostics;
 public static class NoiseGenerator
 {
 
-    public static float[,] GenerateNoiseMap(int mapSize, int seed, float scale, int octaves, float persistence, float lacunarity, MapGenerator.NoiseType noiseType, 
+    public static float[,] GenerateNoiseMap(int mapSize, int seed, float scale, int octaves, float persistence, float lacunarity, FastNoiseLite.NoiseType noiseType, 
         FastNoiseLite.FractalType fractalType, FastNoiseLite.CellularDistanceFunction cellularDistanceFunction, FastNoiseLite.CellularReturnType cellularReturnType,
         FastNoiseLite.DomainWarpType domainWarpType, bool isWarping, float domainWarpAmplitude)
     {
@@ -29,6 +29,7 @@ public static class NoiseGenerator
         fastNoise.SetDomainWarpAmp(domainWarpAmplitude);
         fastNoise.SetSeed(seed);
         fastNoise.SetDomainWarpType(domainWarpType);
+        fastNoise.SetFrequency(1);
 
         Parallel.For(0, mapSize,
             y =>
@@ -36,13 +37,6 @@ public static class NoiseGenerator
                 Parallel.For(0, mapSize,
                     x =>
                     {
-                        float amplitude = 1;
-                        float frequency = 1;
-                        float noiseHeight = 0;
-
-                        fastNoise.SetFrequency(frequency);
-
-
                         float noiseValue;
                         float xMod = (x - mapSize) / scale;
                         float yMod = (y - mapSize) / scale;
@@ -53,45 +47,21 @@ public static class NoiseGenerator
                             fastNoise.DomainWarp(ref xMod, ref yMod);
                         }
 
-                        switch (noiseType)
-                        {
-                            case MapGenerator.NoiseType.PerlinFast:
-                                fastNoise.SetNoiseType(FastNoiseLite.NoiseType.Perlin);
-                                noiseValue = fastNoise.GetNoise(xMod, yMod) * 2 - 1;
-                                break;
-                            case MapGenerator.NoiseType.Simplex:
-                                fastNoise.SetNoiseType(FastNoiseLite.NoiseType.OpenSimplex2S);
-                                noiseValue = fastNoise.GetNoise(xMod, yMod) * 2 - 1;
-                                break;
-                            case MapGenerator.NoiseType.Cellular:
-                                fastNoise.SetNoiseType(FastNoiseLite.NoiseType.Cellular);
-                                noiseValue = fastNoise.GetNoise(xMod, yMod) * 2 - 1;
-                                break;
-                            case MapGenerator.NoiseType.Value:
-                                fastNoise.SetNoiseType(FastNoiseLite.NoiseType.Value);
-                                noiseValue = fastNoise.GetNoise(xMod, yMod) * 2 - 1;
-                                break;
-                            default:
-                                fastNoise.SetNoiseType(FastNoiseLite.NoiseType.Perlin);
-                                noiseValue = fastNoise.GetNoise(xMod, yMod) * 2 - 1;
-                                break;
-                        }
+                        fastNoise.SetNoiseType(noiseType);
+                        noiseValue = fastNoise.GetNoise(xMod, yMod) * 2 - 1;
+                      
                         noiseValue = (noiseValue + 1) / 2;
-                        noiseHeight += noiseValue * amplitude;
-                        amplitude *= persistence;
-                        frequency *= lacunarity;
 
-
-                        if (noiseHeight > maxNoiseHeight)
+                        if (noiseValue > maxNoiseHeight)
                         {
-                            maxNoiseHeight = noiseHeight;
+                            maxNoiseHeight = noiseValue;
                         }
-                        else if (noiseHeight < minNoiseHeight)
+                        else if (noiseValue < minNoiseHeight)
                         {
-                            minNoiseHeight = noiseHeight;
+                            minNoiseHeight = noiseValue;
                         }
 
-                        noiseMap[x, y] = noiseHeight;
+                        noiseMap[x, y] = noiseValue;
                     });
             });
 

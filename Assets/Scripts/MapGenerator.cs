@@ -24,14 +24,6 @@ public class MapGenerator : MonoBehaviour
         FalloffMap
     };
 
-    public enum NoiseType
-    {
-        PerlinFast,
-        Simplex,
-        Cellular,
-        Value
-    };
-
     MapDisplay display;
 
     FastNoiseLite noise = new FastNoiseLite();
@@ -55,7 +47,7 @@ public class MapGenerator : MonoBehaviour
     public Color outlineColour;
 
     [Header("Map Settings")]
-    public NoiseType noiseType;
+    public FastNoiseLite.NoiseType noiseType;
     [Range(0, 1000)]
     public int mapSize;
     public float noiseScale;

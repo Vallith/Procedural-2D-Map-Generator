@@ -8,5 +8,9 @@ public enum MapOptionType
     Lacunarity,
     Seed,
     Scale,
-    MapSize
+    MapSize,
+    NoiseType,
+    FractalType,
+    CellularReturnType,
+    CellularDistanceType
 }
